@@ -1,0 +1,362 @@
+/import 'dart:html';
+
+import 'package:english_words/english_words.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => MyAppState(),
+      child: MaterialApp(
+        title: 'Namer App',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 221, 58, 88)),
+        ),
+        home: MyHomePage(),
+      ),
+    );
+  }
+}
+
+class MyAppState extends ChangeNotifier {
+
+  //Variables
+
+  //variable for current WordPair
+  var current = WordPair.random();
+
+  //Array for favorite Pairs
+  var favorites = <WordPair>[];
+
+
+
+  //Functions
+  void getNext()
+  {
+    current = WordPair.random();
+    notifyListeners();
+  }
+
+
+  // Function to toggle WordPair favor
+  void toggleFavorites()
+  {
+    if(favorites.contains(current))
+    {
+      favorites.remove(current);
+    }
+    else
+    {
+      favorites.add(current);
+    }
+
+    notifyListeners();
+  }
+
+
+
+}
+
+// ...
+
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+
+  var selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+
+    Widget page;
+    switch (selectedIndex)
+    {
+      case 0:
+        page = GeneratorPage();
+        break;
+      case 1:
+        page = FavoritesPage();
+        break;
+      default:
+      throw UnimplementedError('No widget for $selectedIndex');
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          body: Row(
+            children: [
+              SafeArea(
+                child: NavigationRail(
+                  extended: constraints.maxWidth >= 700,
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
+                    ),
+                  ],
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (value) {
+                    setState(() {
+                      selectedIndex = value;
+                    });
+                  },
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+}
+
+class FavoritesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var favorites = appState.favorites;
+
+   return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('You have '         '${appState.favorites.length} favorites:'),
+        ),
+        for (var pair in favorites)
+          ListTile(
+            leading: Icon(Icons.favorite),
+            title: Text(pair.asPascalCase),
+          ),
+        ],
+
+      );
+  }
+}
+
+class GeneratorPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var pair = appState.current;
+
+    IconData icon;
+    if (appState.favorites.contains(pair)) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          RandomPair(pair: pair),
+          SizedBox(height: 10),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  appState.toggleFavorites();
+                },
+                icon: Icon(icon),
+                label: Text('Sexy Button'),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  appState.getNext();
+                },
+                child: Text('Next'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ...
+
+class RandomPair extends StatelessWidget {
+  const RandomPair({
+    super.key,
+    required this.pair,
+  });
+
+  final WordPair pair;
+
+  @override
+  Widget build(BuildContext context) {  
+
+    final theme = Theme.of(context);
+    final style = theme.textTheme.displayMedium!.copyWith(
+      color: theme.colorScheme.onPrimary,);
+
+    return Card(
+      color: theme.colorScheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Text(pair.asPascalCase, style: style),
+      ),
+    );
+  }
+}
+
+
+
+
+
+//import 'package:flutter/material.dart';
+
+
+
+// enum ResourceType
+// {
+//   beans,
+//   milk, 
+//   water,
+//   cash
+// }
+
+// enum CoffeeType
+// {
+//   americano,
+//   latte,
+//   cappucchino,
+// }
+
+class Machine
+{
+
+  //Variables
+  int beans = 100;
+  int milk = 100;
+  int water = 100;
+  int cash = 100;
+
+
+
+  //Functions
+  int getBeans(int resourceType)
+  {
+    switch (resourceType) {
+      case ResourceType.beans:
+        return beans;
+      case ResourceType.milk:
+        return milk;
+      case ResourceType.water:
+        return water;
+      case ResourceType.cash:
+        return cash;
+      default: return -1;
+    }
+  }
+
+  void setResource(ResourceType resourceType, int amount)
+  { 
+    switch (resourceType) {
+      case ResourceType.beans:
+        beans = amount;
+      case ResourceType.milk:
+        milk = amount;
+      case ResourceType.water:
+        water = amount;
+      case ResourceType.cash:
+        cash = amount;
+    }
+  }
+
+  void subtractResources(CoffeeType type)
+  {
+    switch (type) {
+      case CoffeeType.americano:
+        beans -= 50;
+        water -= 100;
+      case CoffeeType.latte:
+        beans -=30;
+        water -=50;
+        milk -= 50;
+      case CoffeeType.cappucchino:
+        beans -=40;
+        water -=70;
+        milk -= 30;
+
+    }
+  }
+
+  bool bAvailableResources(CoffeeType type)
+  {
+    switch (type) {
+      case CoffeeType.americano:
+        if(beans >= 50 && water >= 100)
+        {
+          return true;
+        } 
+        else {
+          return false;
+        }
+
+      case CoffeeType.latte:
+        if(beans >= 30 && water >= 50 && milk >= 50)
+        {
+          return true;
+        } 
+        else {
+          return false;
+        }
+
+      case CoffeeType.cappucchino:
+        if(beans >= 40 && water >= 70 && milk >= 30)
+        {
+          return true;
+        } 
+        else {
+          return false;
+        }
+        
+
+      default: return false;
+    }
+  }
+
+  void makeCoffee(CoffeeType type)
+  {
+    if(bAvailableResources(type))
+    {
+      subtractResources(type);
+    }
+    else
+    {
+      print('Not Enougn Resources');
+    }
+  }
+
+  
+  
+
+}
